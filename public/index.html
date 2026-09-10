@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WritePulse AI — Turn information overload into your next great story.</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root {
+    --bg: #F7F6FB;
+    --bg2: #EDEAF7;
+    --bg3: #E3DFF2;
+    --bg4: #D8D2EC;
+
+    --border: #D1CCE3;
+
+    --text: #29263A;
+    --muted: #716D80;
+
+    --accent: #7467C7;
+    --accent2: #B8AEED;
+    --accent3: #9589D8;
+
+    --danger: #D96C7A;
+    --warn: #D99A3D;
+    --success: #5E9F78;
+
+    --card-bg: rgba(255, 255, 255, 0.88);
+    --glass: rgba(255, 255, 255, 0.65);
+
+    --sidebar-w: 220px;
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+a{color:var(--accent2);text-decoration:none}
+button{cursor:pointer;font-family:inherit;font-size:14px;border:none;outline:none}
+input,textarea,select{font-family:inherit;font-size:14px;outline:none;border:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* Layout */
+#app{display:flex;min-height:100vh}
+#sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:transform .3s}
+#main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;overflow-x:hidden}
+
+/* Sidebar */
+.sidebar-logo{padding:20px 18px 16px;border-bottom:1px solid var(--border)}
+.sidebar-logo .logo-name{font-size:18px;font-weight:700;color:var(--text);letter-spacing:-.3px}
+.sidebar-logo .logo-name span{color:var(--accent)}
+.sidebar-logo .logo-tag{font-size:11px;color:var(--muted);margin-top:2px}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;color:var(--muted);cursor:pointer;transition:all .2s;border-left:3px solid transparent;font-size:13.5px}
+.nav-item:hover{color:var(--text);background:var(--glass)}
+.nav-item.active{color:var(--accent2);border-left-color:var(--accent2);background:rgba(88,166,255,.07)}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.api-status{display:flex;align-items:center;gap:6px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--bg4)}
+.status-dot.ok{background:var(--success)}
+.status-dot.err{background:var(--danger)}
+
+/* Mobile nav */
+#mobile-bar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;gap:12px}
+#menu-btn{background:none;color:var(--text);font-size:20px;padding:4px}
+#mobile-title{font-size:15px;font-weight:700;color:var(--text)}
+#mobile-title span{color:var(--accent)}
+#sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99}
+
+/* Sections */
+.section{display:none;padding:32px;min-height:100vh;animation:fadeIn .3s ease}
+.section.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Cards */
+.card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;backdrop-filter:blur(8px)}
+.card-sm{padding:14px 16px}
+.card-grid{display:grid;gap:16px}
+.card-grid-2{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.card-grid-3{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+
+/* Typography */
+h1{font-size:26px;font-weight:700;letter-spacing:-.4px}
+h2{font-size:20px;font-weight:700;letter-spacing:-.3px}
+h3{font-size:16px;font-weight:600}
+h4{font-size:14px;font-weight:600}
+.section-title{margin-bottom:24px}
+.section-title h2{margin-bottom:4px}
+.section-title p{color:var(--muted);font-size:13px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:.3px}
+.badge-green{background:rgba(57,211,83,.12);color:var(--success)}
+.badge-blue{background:rgba(88,166,255,.12);color:var(--accent2)}
+.badge-purple{background:rgba(188,140,255,.12);color:var(--accent3)}
+.badge-orange{background:rgba(210,153,34,.15);color:var(--warn)}
+.badge-red{background:rgba(248,81,73,.12);color:var(--danger)}
+.badge-gray{background:var(--bg3);color:var(--muted)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);font-weight:600;transition:all .2s;font-size:13.5px}
+.btn-primary{background:var(--accent2);color:#fff}
+.btn-primary:hover{background:#79b8ff}
+.btn-success{background:var(--success);color:#000}
+.btn-success:hover{background:#56e96a}
+.btn-purple{background:var(--accent3);color:#fff}
+.btn-purple:hover{background:#d2a8ff}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
+.btn-outline:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-danger{background:transparent;border:1px solid rgba(248,81,73,.3);color:var(--danger)}
+.btn-danger:hover{background:rgba(248,81,73,.1)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{padding:6px 8px;background:transparent;color:var(--muted);border-radius:6px}
+.btn-icon:hover{color:var(--text);background:var(--bg3)}
+.btn-group{display:flex;flex-wrap:wrap;gap:8px}
+
+/* Inputs */
+.input{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px 12px;width:100%;transition:border-color .2s}
+.input:focus{border-color:var(--accent2)}
+.input::placeholder{color:var(--muted)}
+.textarea{resize:vertical;min-height:100px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.form-group{margin-bottom:16px}
+.select{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:9px 12px;cursor:pointer}
+.select option{background:var(--bg2)}
+
+/* Scores */
+.score-bar{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-top:4px}
+.score-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.score-green{background:linear-gradient(90deg,var(--success),#a8f0b5)}
+.score-blue{background:linear-gradient(90deg,var(--accent2),#a0c4ff)}
+.score-purple{background:linear-gradient(90deg,var(--accent3),#d8b4fe)}
+.score-orange{background:linear-gradient(90deg,var(--warn),#fbbf24)}
+
+/* Tags */
+.tag{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;background:var(--bg3);color:var(--muted);margin:2px}
+.tag-accent{background:rgba(88,166,255,.1);color:var(--accent2)}
+
+/* Loaders */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--border);border-top-color:var(--accent2);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-overlay{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--muted)}
+
+/* Alerts */
+.alert{padding:12px 16px;border-radius:var(--radius-sm);margin-bottom:16px;font-size:13px;display:flex;align-items:flex-start;gap:10px}
+.alert-info{background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);color:var(--accent2)}
+.alert-success{background:rgba(57,211,83,.08);border:1px solid rgba(57,211,83,.2);color:var(--success)}
+.alert-warn{background:rgba(210,153,34,.08);border:1px solid rgba(210,153,34,.2);color:var(--warn)}
+.alert-error{background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);color:var(--danger)}
+
+/* Demo badge */
+.demo-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;background:rgba(210,153,34,.15);color:var(--warn);border:1px solid rgba(210,153,34,.3);letter-spacing:.5px}
+
+/* Sentiment gauge */
+.sentiment-row{display:flex;gap:12px;align-items:stretch;flex-wrap:wrap}
+.sentiment-block{flex:1;min-width:80px;background:var(--bg3);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.sentiment-pct{font-size:22px;font-weight:700}
+.sentiment-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Pulse charts */
+.momentum-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.momentum-rising{background:rgba(57,211,83,.12);color:var(--success)}
+.momentum-stable{background:rgba(88,166,255,.12);color:var(--accent2)}
+.momentum-declining{background:rgba(248,81,73,.12);color:var(--danger)}
+
+/* Chat */
+#chat-messages{display:flex;flex-direction:column;gap:14px;padding:20px;overflow-y:auto;max-height:440px}
+.chat-msg{display:flex;gap:10px;align-items:flex-start;animation:fadeIn .25s ease}
+.chat-msg.user{flex-direction:row-reverse}
+.chat-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.chat-avatar.ai{background:linear-gradient(135deg,var(--accent2),var(--accent3))}
+.chat-avatar.user{background:var(--bg4);color:var(--text)}
+.chat-bubble{max-width:75%;padding:11px 14px;border-radius:12px;font-size:13.5px;line-height:1.6}
+.chat-bubble.ai{background:var(--bg3);border:1px solid var(--border);border-radius:4px 12px 12px 12px}
+.chat-bubble.user{background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.2);border-radius:12px 4px 12px 12px}
+.chat-bubble pre{background:var(--bg2);border-radius:6px;padding:10px;overflow-x:auto;margin-top:8px;font-size:12px}
+.chat-bubble p{margin-bottom:6px}
+.chat-bubble p:last-child{margin-bottom:0}
+.chat-bubble ul,ol{padding-left:18px;margin-top:4px}
+.chat-bubble strong{color:var(--accent2)}
+#chat-input-row{display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--border)}
+#chat-input{flex:1;background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:10px 14px;resize:none;max-height:100px}
+#chat-input:focus{border-color:var(--accent2)}
+.quick-actions{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 12px}
+.quick-btn{padding:5px 12px;border-radius:20px;font-size:12px;background:var(--bg3);border:1px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s}
+.quick-btn:hover{color:var(--accent2);border-color:var(--accent2)}
+
+/* Hero */
+.hero{background:linear-gradient(135deg,rgba(88,166,255,.07) 0%,rgba(188,140,255,.05) 50%,rgba(57,211,83,.05) 100%);border-radius:var(--radius);padding:48px 40px;margin-bottom:28px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(88,166,255,.08),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(188,140,255,.06),transparent 50%)}
+.hero-content{position:relative;z-index:1}
+.hero h1{font-size:32px;line-height:1.2;margin-bottom:12px}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--muted);font-size:15px;max-width:540px;margin-bottom:24px}
+.stats-row{display:flex;gap:20px;flex-wrap:wrap;margin-top:28px}
+.stat-box{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 20px;backdrop-filter:blur(8px);min-width:130px}
+.stat-val{font-size:24px;font-weight:700;color:var(--accent2)}
+.stat-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* Content inbox items */
+.inbox-item{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .2s}
+.inbox-item:hover{border-color:var(--accent2)}
+.inbox-item-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px}
+.inbox-item-title{font-weight:600;font-size:14px}
+.inbox-item-meta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:8px;font-size:12px;color:var(--muted)}
+.inbox-item-text{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:12px;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.inbox-item-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* Topic cards */
+.topic-card{background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s,transform .2s}
+.topic-card:hover{border-color:var(--accent2);transform:translateY(-2px)}
+.topic-card-title{font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4}
+.topic-card-desc{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+.topic-scores{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px}
+.score-item{font-size:11px}
+.score-label{color:var(--muted);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.score-value{font-size:16px;font-weight:700}
+
+/* Blueprint */
+.blueprint-section{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin-bottom:12px}
+.blueprint-section h4{color:var(--accent2);margin-bottom:8px;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+.blueprint-section p{color:var(--text);font-size:13.5px;line-height:1.6}
+.blueprint-section ul{padding-left:18px;color:var(--text);font-size:13.5px}
+.blueprint-section ul li{margin-bottom:4px}
+
+/* Responsive */
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #sidebar-overlay.open{display:block}
+  #main{margin-left:0;padding-top:58px}
+  #mobile-bar{display:flex}
+  .section{padding:20px 16px}
+  .hero{padding:28px 20px}
+  .hero h1{font-size:22px}
+  .stats-row{gap:12px}
+  .topic-scores{grid-template-columns:1fr 1fr}
+  h1{font-size:20px}
+  h2{font-size:17px}
+}
+@media(max-width:480px){
+  .card-grid-2,.card-grid-3{grid-template-columns:1fr}
+  .chat-bubble{max-width:90%}
+  .sentiment-row{flex-direction:row}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- SIDEBAR -->
+<nav id="sidebar" role="navigation" aria-label="Main navigation">
+  <div class="sidebar-logo">
+    <div class="logo-name">Write<span>Pulse</span> AI</div>
+    <div class="logo-tag">Turn information overload into your next great story.</div>
+  </div>
+  <div class="sidebar-nav" id="sidebar-nav">
+    <div class="nav-item active" data-section="overview" tabindex="0" role="button" aria-label="Overview">
+      <span class="nav-icon">⚡</span> Overview
+    </div>
+    <div class="nav-item" data-section="inbox" tabindex="0" role="button" aria-label="Content Inbox">
+      <span class="nav-icon">📥</span> Content Inbox
+    </div>
+    <div class="nav-item" data-section="topics" tabindex="0" role="button" aria-label="Topic Studio">
+      <span class="nav-icon">💡</span> Topic Studio
+    </div>
+    <div class="nav-item" data-section="refinery" tabindex="0" role="button" aria-label="Idea Refinery">
+      <span class="nav-icon">🔬</span> Idea Refinery
+    </div>
+    <div class="nav-item" data-section="blueprint" tabindex="0" role="button" aria-label="Blog Blueprint">
+      <span class="nav-icon">📋</span> Blog Blueprint
+    </div>
+    <div class="nav-item" data-section="pulse" tabindex="0" role="button" aria-label="Writing Pulse">
+      <span class="nav-icon">📊</span> Writing Pulse
+    </div>
+    <div class="nav-item" data-section="writer" tabindex="0" role="button" aria-label="AI Writer">
+      <span class="nav-icon">✍️</span> AI Writer
+    </div>
+  </div>
+  <div class="sidebar-footer">
+    <div class="api-status">
+      <div class="status-dot" id="api-status-dot"></div>
+      <span id="api-status-text">Checking API…</span>
+    </div>
+    <div style="margin-top:6px;font-size:11px;color:var(--muted)">WritePulse AI v1.0</div>
+  </div>
+</nav>
+
+<!-- MOBILE BAR -->
+<div id="mobile-bar">
+  <button id="menu-btn" aria-label="Open menu">☰</button>
+  <div id="mobile-title">Write<span>Pulse</span> AI</div>
+</div>
+<div id="sidebar-overlay"></div>
+
+<!-- MAIN CONTENT -->
+<main id="main" role="main">
+
+<!-- ===== SECTION: OVERVIEW ===== -->
+<section id="section-overview" class="section active">
+  <div class="hero">
+    <div class="hero-content">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+        <div style="font-size:36px">⚡</div>
+        <div>
+          <h1>Write<span style="color:var(--accent)">Pulse</span> AI</h1>
+          <p style="margin:0;font-size:13px;color:var(--muted)">Turn information overload into your next great story.</p>
+        </div>
+      </div>
+      <p>An intelligent writing workspace that collects, synthesizes, and transforms scattered information into compelling blog content — powered by AI.</p>
+      <div class="btn-group" style="margin-top:4px">
+        <button class="btn btn-success" onclick="navigate('inbox')">📥 Start Curating</button>
+        <button class="btn btn-purple" onclick="navigate('pulse')">📊 Explore Writing Pulse</button>
+        <button class="btn btn-outline" onclick="loadDemoWorkspace()" id="demo-btn">🎯 Load Demo Workspace</button>
+      </div>
+      <div class="stats-row" id="overview-stats">
+        <div class="stat-box">
+          <div class="stat-val" id="stat-sources">0</div>
+          <div class="stat-lbl">Sources Analyzed</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-topics">0</div>
+          <div class="stat-lbl">Trending Topics</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-sentiment">—</div>
+          <div class="stat-lbl">Audience Sentiment</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-engagement">—</div>
+          <div class="stat-lbl">Engagement Forecast</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-grid card-grid-2">
+    <div class="card">
+      <h3 style="margin-bottom:14px">🔄 How WritePulse Works</h3>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="background:rgba(88,166,255,.15);color:var(--accent2);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap">01</div>
+          <div><strong>Collect</strong> — Add text, URLs, images, and voice notes to your Content Inbox.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="background:rgba(188,140,255,.15);color:var(--accent3);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap">02</div>
+          <div><strong>Analyze</strong> — AI agents extract themes, sentiment, and key insights from your sources.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="background:rgba(57,211,83,.15);color:var(--success);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap">03</div>
+          <div><strong>Synthesize</strong> — Topic Studio combines signals to surface compelling blog angles.</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="background:rgba(210,153,34,.15);color:var(--warn);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:700;white-space:nowrap">04</div>
+          <div><strong>Create</strong> — Generate blueprints, refine ideas, and write with your AI assistant.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">🤖 AI Agents Active</h3>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>🔍 Source Analyst</span><span class="badge badge-green">Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>📈 Trend Synthesizer</span><span class="badge badge-green">Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>💡 Topic Strategist</span><span class="badge badge-green">Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>👥 Audience Analyst</span><span class="badge badge-green">Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>📋 Content Planner</span><span class="badge badge-green">Active</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span>✍️ Writing Assistant</span><span class="badge badge-green">Active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION: CONTENT INBOX ===== -->
+<section id="section-inbox" class="section">
+  <div class="section-title">
+    <h2>📥 Content Inbox</h2>
+    <p>Collect information from any source. Everything becomes a smart content card.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start" class="inbox-layout">
+    <!-- Add content panel -->
+    <div class="card" style="position:sticky;top:32px">
+      <h3 style="margin-bottom:16px">Add Content</h3>
+      <!-- Type tabs -->
+      <div style="display:flex;gap:4px;background:var(--bg3);border-radius:var(--radius-sm);padding:4px;margin-bottom:16px">
+        <button class="tab-btn active" data-tab="text" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:var(--bg2);color:var(--text);border:none;cursor:pointer">📝 Text</button>
+        <button class="tab-btn" data-tab="url" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:none;cursor:pointer">🔗 URL</button>
+        <button class="tab-btn" data-tab="image" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:none;cursor:pointer">🖼 Image</button>
+        <button class="tab-btn" data-tab="voice" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:none;cursor:pointer">🎤 Voice</button>
+      </div>
+
+      <!-- Text tab -->
+      <div id="tab-text" class="tab-panel">
+        <div class="form-group">
+          <label class="label" for="inbox-title">Title / Label</label>
+          <input type="text" id="inbox-title" class="input" placeholder="E.g. Tech article, comment, idea…" aria-label="Content title"/>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inbox-category">Category</label>
+          <select id="inbox-category" class="input select">
+            <option value="news">📰 News</option>
+            <option value="research">🔬 Research</option>
+            <option value="social">📱 Social Trend</option>
+            <option value="comment">💬 Audience Comment</option>
+            <option value="note" selected>📝 Personal Note</option>
+            <option value="other">📌 Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inbox-text">Content</label>
+          <textarea id="inbox-text" class="input textarea" placeholder="Paste news, research, comments, ideas…" rows="5" aria-label="Content text"></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="addTextContent()" id="add-text-btn">Add & Analyze ✨</button>
+      </div>
+
+      <!-- URL tab -->
+      <div id="tab-url" class="tab-panel" style="display:none">
+        <div class="form-group">
+          <label class="label" for="inbox-url">URL</label>
+          <input type="url" id="inbox-url" class="input" placeholder="https://example.com/article" aria-label="URL to analyze"/>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inbox-url-notes">Additional Notes (optional)</label>
+          <textarea id="inbox-url-notes" class="input textarea" placeholder="Add context about this URL…" rows="3" style="min-height:70px" aria-label="Notes about URL"></textarea>
+        </div>
+        <div class="alert alert-info" style="margin-bottom:12px">
+          <span>ℹ️</span>
+          <span>The AI will analyze the URL as context. Full page scraping requires additional server-side configuration.</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="addUrlContent()">Analyze URL ✨</button>
+      </div>
+
+      <!-- Image tab -->
+      <div id="tab-image" class="tab-panel" style="display:none">
+        <div class="form-group">
+          <label class="label" for="inbox-image">Upload Image</label>
+          <input type="file" id="inbox-image" class="input" accept="image/*" style="padding:6px" aria-label="Upload image"/>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inbox-img-notes">Image Context (optional)</label>
+          <textarea id="inbox-img-notes" class="input textarea" placeholder="Describe what this image is about…" rows="3" style="min-height:70px" aria-label="Image context"></textarea>
+        </div>
+        <div class="alert alert-warn" style="margin-bottom:12px">
+          <span>⚠️</span>
+          <span>Image analysis uses AI vision. If unavailable on your plan, text fallback is used.</span>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="addImageContent()">Analyze Image ✨</button>
+      </div>
+
+      <!-- Voice tab -->
+      <div id="tab-voice" class="tab-panel" style="display:none">
+        <div class="form-group">
+          <label class="label" for="inbox-voice">Upload Audio File</label>
+          <input type="file" id="inbox-voice" class="input" accept="audio/*" style="padding:6px" aria-label="Upload voice note"/>
+        </div>
+        <div class="alert alert-warn" style="margin-bottom:12px">
+          <span>⚠️</span>
+          <span>Speech-to-text requires additional API configuration (e.g. Whisper API). Currently, please transcribe manually and add as text, or describe your voice note below.</span>
+        </div>
+        <div class="form-group">
+          <label class="label" for="inbox-voice-transcript">Manual Transcript / Description</label>
+          <textarea id="inbox-voice-transcript" class="input textarea" placeholder="Paste or type the transcript of your voice note…" rows="4" aria-label="Voice note transcript"></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="addVoiceContent()">Add Voice Note ✨</button>
+      </div>
+
+      <div id="inbox-add-status" style="margin-top:10px"></div>
+    </div>
+
+    <!-- Items list -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+        <h3 id="inbox-count-title">Content Cards (0)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="inbox-search" class="input" placeholder="🔍 Search…" style="width:180px" oninput="renderInbox()" aria-label="Search content"/>
+          <select id="inbox-filter" class="input select" style="width:130px" onchange="renderInbox()">
+            <option value="">All Types</option>
+            <option value="news">News</option>
+            <option value="research">Research</option>
+            <option value="social">Social</option>
+            <option value="comment">Comment</option>
+            <option value="note">Note</option>
+          </select>
+          <button class="btn btn-sm btn-outline" onclick="clearInbox()" aria-label="Clear all content">Clear All</button>
+        </div>
+      </div>
+      <div id="inbox-list" class="card-grid" style="gap:12px"></div>
+      <div id="inbox-empty" class="loading-overlay" style="flex-direction:column;gap:8px">
+        <div style="font-size:36px">📭</div>
+        <div style="font-weight:600">No content yet</div>
+        <div style="color:var(--muted);text-align:center">Add text, URLs, images, or voice notes to get started.<br>Or <button class="btn btn-sm btn-outline" onclick="loadDemoWorkspace()" style="display:inline-flex">Load Demo Workspace</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION: TOPIC STUDIO ===== -->
+<section id="section-topics" class="section">
+  <div class="section-title">
+    <h2>💡 AI Topic Studio</h2>
+    <p>Discover compelling blog topics from your collected content using AI synthesis.</p>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+    <div id="topics-sources-info" style="color:var(--muted);font-size:13px"></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="generateTopics()" id="generate-topics-btn">🔍 Analyze &amp; Generate Topics</button>
+      <button class="btn btn-outline btn-sm" onclick="clearTopics()">Clear Topics</button>
+    </div>
+  </div>
+
+  <div id="topics-loading" class="loading-overlay" style="display:none">
+    <div class="spinner"></div>
+    <span>AI agents are synthesizing your sources…</span>
+  </div>
+
+  <div id="topics-synthesis" style="margin-bottom:20px;display:none">
+    <div class="card" style="margin-bottom:12px">
+      <h4 style="margin-bottom:8px">🧠 Content Synthesis</h4>
+      <p id="topics-synthesis-text" style="color:var(--muted);font-size:13.5px;line-height:1.6"></p>
+    </div>
+    <div id="topics-themes-row" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+    <div id="topics-contradictions" style="display:none">
+      <div class="alert alert-warn">
+        <span>⚠️</span>
+        <div><strong>Conflicting information detected:</strong> <span id="topics-contradictions-text"></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="topics-list" class="card-grid card-grid-2" style="gap:16px"></div>
+  <div id="topics-empty" class="loading-overlay" style="flex-direction:column;gap:8px">
+    <div style="font-size:36px">💡</div>
+    <div style="font-weight:600">No topics yet</div>
+    <div style="color:var(--muted);text-align:center">Add content to your inbox first, then click <strong>Analyze &amp; Generate Topics</strong>.</div>
+  </div>
+</section>
+
+<!-- ===== SECTION: IDEA REFINERY ===== -->
+<section id="section-refinery" class="section">
+  <div class="section-title">
+    <h2>🔬 Multimodal Idea Refinery</h2>
+    <p>Transform rough ideas into compelling content concepts with AI.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start" class="refinery-layout">
+    <div class="card" style="position:sticky;top:32px">
+      <h3 style="margin-bottom:16px">Submit Your Idea</h3>
+      <div style="display:flex;gap:4px;background:var(--bg3);border-radius:var(--radius-sm);padding:4px;margin-bottom:16px">
+        <button class="rtab-btn active" data-rtab="rtext" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:var(--bg2);color:var(--text);border:none;cursor:pointer">📝 Text</button>
+        <button class="rtab-btn" data-rtab="rimage" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:none;cursor:pointer">🖼 Image</button>
+        <button class="rtab-btn" data-rtab="rvoice" style="flex:1;padding:6px;border-radius:6px;font-size:12px;font-weight:600;background:transparent;color:var(--muted);border:none;cursor:pointer">🎤 Voice</button>
+      </div>
+      <div id="rtab-rtext">
+        <div class="form-group">
+          <label class="label" for="refinery-text">Your Rough Idea</label>
+          <textarea id="refinery-text" class="input textarea" rows="5" placeholder="I want to write about AI and creativity but not sure where to go with it…" aria-label="Your rough idea"></textarea>
+        </div>
+      </div>
+      <div id="rtab-rimage" style="display:none">
+        <div class="form-group">
+          <label class="label" for="refinery-image">Upload Image Inspiration</label>
+          <input type="file" id="refinery-image" class="input" accept="image/*" style="padding:6px" aria-label="Upload inspiration image"/>
+        </div>
+        <div class="form-group">
+          <label class="label" for="refinery-img-desc">Describe your idea about this image</label>
+          <textarea id="refinery-img-desc" class="input textarea" rows="3" style="min-height:70px" placeholder="This image made me think about…" aria-label="Image description"></textarea>
+        </div>
+      </div>
+      <div id="rtab-rvoice" style="display:none">
+        <div class="alert alert-warn" style="margin-bottom:12px">
+          <span>⚠️</span>
+          <span>Please transcribe your voice note and paste it below.</span>
+        </div>
+        <div class="form-group">
+          <label class="label" for="refinery-voice">Voice Note Transcript</label>
+          <textarea id="refinery-voice" class="input textarea" rows="5" placeholder="Paste or type your voice note transcript…" aria-label="Voice note transcript"></textarea>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="refineIdea()" id="refine-btn">✨ Refine This Idea</button>
+      <div id="refinery-status" style="margin-top:10px"></div>
+    </div>
+
+    <div id="refinery-results">
+      <div class="loading-overlay" style="flex-direction:column;gap:8px">
+        <div style="font-size:36px">🔬</div>
+        <div style="font-weight:600">Submit an idea to refine</div>
+        <div style="color:var(--muted);text-align:center">Your rough idea will be transformed into a stronger content concept.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION: BLOG BLUEPRINT ===== -->
+<section id="section-blueprint" class="section">
+  <div class="section-title">
+    <h2>📋 Blog Blueprint</h2>
+    <p>Generate a complete blog structure from any topic.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start" class="blueprint-layout">
+    <div class="card" style="position:sticky;top:32px">
+      <h3 style="margin-bottom:16px">Configure Blueprint</h3>
+      <div class="form-group">
+        <label class="label" for="bp-topic">Topic / Title</label>
+        <input type="text" id="bp-topic" class="input" placeholder="Enter topic or select from Topic Studio" aria-label="Blog topic"/>
+      </div>
+      <div class="form-group">
+        <label class="label" for="bp-tone">Writing Tone</label>
+        <select id="bp-tone" class="input select" aria-label="Writing tone">
+          <option value="informative">📚 Informative</option>
+          <option value="conversational">💬 Conversational</option>
+          <option value="analytical">🔍 Analytical</option>
+          <option value="persuasive">💪 Persuasive</option>
+          <option value="storytelling">📖 Storytelling</option>
+          <option value="professional">👔 Professional</option>
+          <option value="casual">😊 Casual</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="label" for="bp-audience">Target Audience</label>
+        <input type="text" id="bp-audience" class="input" placeholder="E.g. Tech enthusiasts, beginners…" aria-label="Target audience"/>
+      </div>
+      <div class="form-group">
+        <div style="display:flex;align-items:center;gap:8px">
+          <input type="checkbox" id="bp-use-sources" checked style="width:auto;cursor:pointer"/>
+          <label for="bp-use-sources" style="cursor:pointer;font-size:13px">Use collected sources as context</label>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="generateBlueprint()" id="blueprint-btn">📋 Generate Blueprint</button>
+      <div id="blueprint-status" style="margin-top:10px"></div>
+    </div>
+
+    <div id="blueprint-results">
+      <div class="loading-overlay" style="flex-direction:column;gap:8px">
+        <div style="font-size:36px">📋</div>
+        <div style="font-weight:600">No blueprint yet</div>
+        <div style="color:var(--muted);text-align:center">Enter a topic and click <strong>Generate Blueprint</strong>.<br>Or select a topic from the Topic Studio.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION: WRITING PULSE ===== -->
+<section id="section-pulse" class="section">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+    <div>
+      <h2 style="margin-bottom:4px">📊 Writing Pulse Dashboard</h2>
+      <p style="color:var(--muted);font-size:13px">Real-time content landscape — AI estimates based on available signals.</p>
+    </div>
+    <div class="btn-group">
+      <button class="btn btn-primary" onclick="generatePulse()" id="pulse-btn">🔄 Refresh Analysis</button>
+    </div>
+  </div>
+
+  <div id="pulse-loading" class="loading-overlay" style="display:none">
+    <div class="spinner"></div>
+    <span>Audience Analyst is reading the signals…</span>
+  </div>
+
+  <div class="alert alert-info" style="margin-bottom:20px">
+    <span>ℹ️</span>
+    <span><strong>Note:</strong> All forecasts and recommendations are <strong>AI estimates</strong> based on collected content signals, not actual user analytics or historical data.</span>
+  </div>
+
+  <div class="card-grid card-grid-2" style="gap:16px" id="pulse-grid">
+    <div class="card">
+      <h3 style="margin-bottom:14px">🔥 Trending Topics</h3>
+      <div id="pulse-trending"><div style="color:var(--muted);font-size:13px">Generate pulse to see trending topics.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">💭 Sentiment Analysis</h3>
+      <div id="pulse-sentiment">
+        <div class="sentiment-row">
+          <div class="sentiment-block"><div class="sentiment-pct" id="sent-pos" style="color:var(--success)">—</div><div class="sentiment-lbl">Positive</div></div>
+          <div class="sentiment-block"><div class="sentiment-pct" id="sent-neu" style="color:var(--muted)">—</div><div class="sentiment-lbl">Neutral</div></div>
+          <div class="sentiment-block"><div class="sentiment-pct" id="sent-neg" style="color:var(--danger)">—</div><div class="sentiment-lbl">Negative</div></div>
+        </div>
+        <div id="sent-bar" style="margin-top:12px;height:8px;border-radius:4px;background:var(--bg3);overflow:hidden;display:none">
+          <div id="sent-bar-fill" style="height:100%;transition:width .8s ease"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">📈 Engagement Forecast <span class="badge badge-orange" style="font-size:10px;vertical-align:middle">AI Estimate</span></h3>
+      <div id="pulse-engagement"><div style="color:var(--muted);font-size:13px">Generate pulse to see engagement forecasts.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">⏰ Publishing Recommendations</h3>
+      <div id="pulse-publishing"><div style="color:var(--muted);font-size:13px">Generate pulse to see publishing recommendations.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">#️⃣ Top Hashtags</h3>
+      <div id="pulse-hashtags"><div style="color:var(--muted);font-size:13px">Generate pulse to see hashtag suggestions.</div></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px">🎯 Recommended Angle</h3>
+      <div id="pulse-angle"><div style="color:var(--muted);font-size:13px">Generate pulse to see angle recommendations.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SECTION: AI WRITER ===== -->
+<section id="section-writer" class="section">
+  <div class="section-title">
+    <h2>✍️ AI Writing Assistant</h2>
+    <p>Develop your blog content with an intelligent writing partner.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:280px 1fr;gap:20px;align-items:start" class="writer-layout">
+    <!-- Context panel -->
+    <div>
+      <div class="card card-sm" style="margin-bottom:12px">
+        <h4 style="margin-bottom:10px">Current Context</h4>
+        <div class="form-group">
+          <label class="label" for="writer-topic">Topic</label>
+          <input type="text" id="writer-topic" class="input" placeholder="Current topic…" aria-label="Writing topic"/>
+        </div>
+        <div class="form-group">
+          <label class="label" for="writer-tone">Tone</label>
+          <select id="writer-tone" class="input select" aria-label="Writing tone">
+            <option value="informative">Informative</option>
+            <option value="conversational">Conversational</option>
+            <option value="analytical">Analytical</option>
+            <option value="persuasive">Persuasive</option>
+            <option value="storytelling">Storytelling</option>
+            <option value="professional">Professional</option>
+            <option value="casual">Casual</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="label" for="writer-audience">Audience</label>
+          <input type="text" id="writer-audience" class="input" placeholder="Who are you writing for?" aria-label="Target audience"/>
+        </div>
+      </div>
+      <div class="card card-sm">
+        <h4 style="margin-bottom:10px">Quick Actions</h4>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Make this introduction stronger.')">💪 Stronger introduction</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Give me three alternative hooks.')">🎣 Alternative hooks</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Make this more conversational.')">💬 More conversational</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Add a strong counterargument to this.')">⚔️ Add counterargument</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Suggest a better, more compelling title.')">✏️ Better title</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('What information am I missing to make this complete?')">🔍 What am I missing?</button>
+          <button class="quick-btn" style="text-align:left;border-radius:var(--radius-sm)" onclick="quickAction('Write a compelling conclusion for this blog post.')">🏁 Write conclusion</button>
+        </div>
+        <button class="btn btn-sm btn-outline" style="width:100%;margin-top:10px" onclick="clearChat()">🗑 Clear Chat</button>
+      </div>
+    </div>
+
+    <!-- Chat panel -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:14px">✍️</div>
+        <div>
+          <div style="font-weight:600;font-size:14px">WritePulse Writing Assistant</div>
+          <div style="font-size:11px;color:var(--muted)" id="writer-context-label">No topic selected</div>
+        </div>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+          <div class="status-dot ok"></div>
+          <span style="font-size:12px;color:var(--muted)">Ready</span>
+        </div>
+      </div>
+      <div id="chat-messages" role="log" aria-live="polite" aria-label="Chat messages"></div>
+      <div class="quick-actions" id="chat-suggestions" style="display:none"></div>
+      <div id="chat-input-row">
+        <textarea id="chat-input" placeholder="Ask your writing assistant… (Shift+Enter for new line, Enter to send)" aria-label="Chat input" rows="2"></textarea>
+        <button class="btn btn-primary" onclick="sendChat()" id="send-btn" aria-label="Send message" style="align-self:flex-end">Send</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<script>
+// =============================================
+// WritePulse AI — Frontend JavaScript
+// =============================================
+
+const API_BASE = '';  // Same origin
+
+// ---- STATE ----
+const state = {
+  inboxItems: [],
+  topics: [],
+  savedBlueprint: null,
+  chatMessages: [],
+  pulseData: null,
+  currentSection: 'overview',
+  isDemoMode: false
+};
+
+// ---- UTILITIES ----
+function eid(id) { return document.getElementById(id); }
+
+function sanitize(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = String(str);
+  return div.innerHTML;
+}
+
+function formatMarkdown(text) {
+  if (!text) return '';
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/`([^`]+)`/g,'<code style="background:var(--bg3);padding:1px 4px;border-radius:3px;font-size:12px">$1</code>')
+    .replace(/^### (.+)$/gm,'<h4 style="margin:8px 0 4px;color:var(--accent2)">$1</h4>')
+    .replace(/^## (.+)$/gm,'<h3 style="margin:10px 0 4px">$1</h3>')
+    .replace(/^# (.+)$/gm,'<h2 style="margin:12px 0 6px">$1</h2>')
+    .replace(/^[-*] (.+)$/gm,'<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, s => `<ul style="padding-left:18px;margin:6px 0">${s}</ul>`)
+    .replace(/^\d+\. (.+)$/gm,'<li>$1</li>')
+    .replace(/\n\n/g,'</p><p>')
+    .replace(/\n/g,'<br>');
+}
+
+function showStatus(elId, type, msg, timeout=4000) {
+  const el = eid(elId);
+  if (!el) return;
+  el.innerHTML = `<div class="alert alert-${type}" style="margin:0">${sanitize(msg)}</div>`;
+  if (timeout) setTimeout(() => { if(el) el.innerHTML=''; }, timeout);
+}
+
+function setLoading(btnId, loading, text) {
+  const btn = eid(btnId);
+  if (!btn) return;
+  if (loading) {
+    btn.disabled = true;
+    btn.dataset.origText = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> ${text||'Processing…'}`;
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = btn.dataset.origText || text || 'Done';
+  }
+}
+
+function uuid() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function animateCounter(el, target) {
+  let current = 0;
+  const step = Math.ceil(target / 20);
+  const interval = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current;
+    if (current >= target) clearInterval(interval);
+  }, 40);
+}
+
+// ---- PERSISTENCE ----
+function saveState() {
+  try {
+    localStorage.setItem('wp_inbox', JSON.stringify(state.inboxItems));
+    localStorage.setItem('wp_topics', JSON.stringify(state.topics));
+    if (state.savedBlueprint) localStorage.setItem('wp_blueprint', JSON.stringify(state.savedBlueprint));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    const inbox = localStorage.getItem('wp_inbox');
+    if (inbox) state.inboxItems = JSON.parse(inbox);
+    const topics = localStorage.getItem('wp_topics');
+    if (topics) state.topics = JSON.parse(topics);
+    const blueprint = localStorage.getItem('wp_blueprint');
+    if (blueprint) state.savedBlueprint = JSON.parse(blueprint);
+  } catch(e) {}
+}
+
+// ---- NAVIGATION ----
+function navigate(section) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sectionEl = eid(`section-${section}`);
+  if (sectionEl) sectionEl.classList.add('active');
+  const navEl = document.querySelector(`.nav-item[data-section="${section}"]`);
+  if (navEl) navEl.classList.add('active');
+  state.currentSection = section;
+  // Close mobile menu
+  eid('sidebar').classList.remove('open');
+  eid('sidebar-overlay').classList.remove('open');
+  // Section-specific init
+  if (section === 'inbox') renderInbox();
+  if (section === 'topics') updateTopicsSourceInfo();
+  if (section === 'writer') updateWriterContextLabel();
+  updateOverviewStats();
+}
+
+// ---- API HEALTH CHECK ----
+async function checkApiHealth() {
+  try {
+    const res = await fetch(`${API_BASE}/api/health`);
+    const data = await res.json();
+    const dot = eid('api-status-dot');
+    const txt = eid('api-status-text');
+    if (data.groqConfigured) {
+      dot.className = 'status-dot ok';
+      txt.textContent = 'Groq API connected';
+    } else {
+      dot.className = 'status-dot err';
+      txt.textContent = 'No API key — Demo Mode';
+    }
+  } catch(e) {
+    const dot = eid('api-status-dot');
+    const txt = eid('api-status-text');
+    dot.className = 'status-dot err';
+    txt.textContent = 'Server unreachable';
+  }
+}
+
+// ---- API CALLS ----
+async function apiCall(endpoint, body) {
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || `API error ${res.status}`);
+  return data;
+}
+
+// ---- OVERVIEW ----
+function updateOverviewStats() {
+  const sourcesEl = eid('stat-sources');
+  const topicsEl = eid('stat-topics');
+  const sentEl = eid('stat-sentiment');
+  const engEl = eid('stat-engagement');
+
+  if (sourcesEl) animateCounter(sourcesEl, state.inboxItems.length);
+  if (topicsEl) animateCounter(topicsEl, state.topics.length);
+
+  // Calculate sentiment from inbox
+  if (state.inboxItems.length > 0) {
+    const sentiments = state.inboxItems.map(i => i.analysis?.sentiment || 'neutral');
+    const pos = sentiments.filter(s => s === 'positive').length;
+    const neg = sentiments.filter(s => s === 'negative').length;
+    if (sentEl) {
+      const dominant = pos > neg ? '😊 Positive' : neg > pos ? '😟 Negative' : '😐 Neutral';
+      sentEl.textContent = dominant;
+    }
+  } else {
+    if (sentEl) sentEl.textContent = '—';
+  }
+
+  // Engagement from topics
+  if (state.topics.length > 0) {
+    const scores = state.topics.map(t => t.engagement_score || 0);
+    const avg = Math.round(scores.reduce((a,b)=>a+b,0)/scores.length);
+    if (engEl) engEl.textContent = avg + '/100';
+  } else {
+    if (engEl) engEl.textContent = '—';
+  }
+}
+
+// ---- TABS (Inbox) ----
+function initTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.style.background = 'transparent';
+        b.style.color = 'var(--muted)';
+      });
+      btn.style.background = 'var(--bg2)';
+      btn.style.color = 'var(--text)';
+      document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+      eid(`tab-${tab}`).style.display = 'block';
+    });
+  });
+
+  document.querySelectorAll('.rtab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.rtab;
+      document.querySelectorAll('.rtab-btn').forEach(b => {
+        b.style.background = 'transparent';
+        b.style.color = 'var(--muted)';
+      });
+      btn.style.background = 'var(--bg2)';
+      btn.style.color = 'var(--text)';
+      ['rtab-rtext','rtab-rimage','rtab-rvoice'].forEach(id => {
+        const el = eid(id);
+        if (el) el.style.display = 'none';
+      });
+      const el = eid(`rtab-${tab}`);
+      if (el) el.style.display = 'block';
+    });
+  });
+}
+
+// ---- CONTENT INBOX ----
+async function addTextContent() {
+  const title = eid('inbox-title').value.trim();
+  const content = eid('inbox-text').value.trim();
+  const category = eid('inbox-category').value;
+  if (!content) { showStatus('inbox-add-status','error','Please enter some content.'); return; }
+
+  const item = {
+    id: uuid(),
+    type: 'text',
+    category,
+    title: title || content.slice(0, 60) + (content.length > 60 ? '…' : ''),
+    content,
+    url: null,
+    addedAt: new Date().toISOString(),
+    analysis: null,
+    isDemo: false
+  };
+
+  state.inboxItems.unshift(item);
+  renderInbox();
+  saveState();
+  eid('inbox-title').value = '';
+  eid('inbox-text').value = '';
+  showStatus('inbox-add-status', 'success', 'Content added! Analyzing…', 0);
+  setLoading('add-text-btn', true, 'Analyzing…');
+
+  try {
+    const res = await apiCall('/api/analyze', { content, type: category });
+    item.analysis = res.data;
+    renderInbox();
+    saveState();
+    updateOverviewStats();
+    showStatus('inbox-add-status', 'success', 'Content analyzed and added ✓', 3000);
+  } catch(e) {
+    item.analysis = { summary: content.slice(0,200), sentiment: 'neutral', relevance_score: 50, topics: [], key_points: [], category };
+    renderInbox();
+    showStatus('inbox-add-status', 'warn', `Analysis unavailable: ${e.message}. Content saved.`, 5000);
+  } finally {
+    setLoading('add-text-btn', false);
+  }
+}
+
+async function addUrlContent() {
+  const url = eid('inbox-url').value.trim();
+  const notes = eid('inbox-url-notes').value.trim();
+  if (!url) { showStatus('inbox-add-status','error','Please enter a URL.'); return; }
+
+  const item = {
+    id: uuid(),
+    type: 'url',
+    category: 'news',
+    title: url,
+    content: notes || `URL: ${url}`,
+    url,
+    addedAt: new Date().toISOString(),
+    analysis: null,
+    isDemo: false
+  };
+
+  state.inboxItems.unshift(item);
+  renderInbox();
+  saveState();
+  eid('inbox-url').value = '';
+  eid('inbox-url-notes').value = '';
+  showStatus('inbox-add-status', 'info', 'URL added! Analyzing…', 0);
+
+  try {
+    const res = await apiCall('/api/analyze', { content: notes || `Content from URL: ${url}`, url, type: 'news' });
+    item.analysis = res.data;
+    item.title = res.data?.summary?.slice(0,80) || url;
+    renderInbox();
+    saveState();
+    updateOverviewStats();
+    showStatus('inbox-add-status', 'success', 'URL analyzed ✓', 3000);
+  } catch(e) {
+    item.analysis = { summary: `URL: ${url}`, sentiment: 'neutral', relevance_score: 50, topics: [], key_points: [], category: 'news' };
+    renderInbox();
+    showStatus('inbox-add-status', 'warn', `Could not analyze URL: ${e.message}. Added manually.`, 5000);
+  }
+}
+
+async function addImageContent() {
+  const fileInput = eid('inbox-image');
+  const notes = eid('inbox-img-notes').value.trim();
+  if (!fileInput.files[0] && !notes) { showStatus('inbox-add-status','error','Please select an image or add context.'); return; }
+
+  const item = {
+    id: uuid(),
+    type: 'image',
+    category: 'note',
+    title: fileInput.files[0]?.name || 'Image',
+    content: notes || 'Image uploaded',
+    url: null,
+    addedAt: new Date().toISOString(),
+    analysis: null,
+    isDemo: false
+  };
+
+  state.inboxItems.unshift(item);
+  renderInbox();
+  saveState();
+  showStatus('inbox-add-status', 'info', 'Image added! Analyzing…', 0);
+
+  try {
+    let analysis;
+    if (fileInput.files[0]) {
+      const file = fileInput.files[0];
+      if (!file.type.startsWith('image/')) throw new Error('Not a valid image file.');
+      if (file.size > 5 * 1024 * 1024) throw new Error('Image too large (max 5MB).');
+      const base64 = await fileToBase64(file);
+      const res = await apiCall('/api/analyze-image', { base64, mimeType: file.type });
+      analysis = res.data;
+    } else {
+      const res = await apiCall('/api/analyze', { content: notes, type: 'note' });
+      analysis = res.data;
+    }
+    item.analysis = analysis;
+    item.title = analysis?.summary?.slice(0,80) || item.title;
+    renderInbox();
+    saveState();
+    updateOverviewStats();
+    showStatus('inbox-add-status', 'success', 'Image analyzed ✓', 3000);
+  } catch(e) {
+    item.analysis = { summary: notes || 'Image content', sentiment: 'neutral', relevance_score: 50, topics: [], key_points: [], category: 'note' };
+    renderInbox();
+    showStatus('inbox-add-status', 'warn', `Image analysis unavailable: ${e.message}. Saved with manual notes.`, 5000);
+  }
+  fileInput.value = '';
+  eid('inbox-img-notes').value = '';
+}
+
+async function addVoiceContent() {
+  const transcript = eid('inbox-voice-transcript').value.trim();
+  if (!transcript) { showStatus('inbox-add-status','error','Please add a transcript or description of your voice note.'); return; }
+
+  const item = {
+    id: uuid(),
+    type: 'voice',
+    category: 'note',
+    title: 'Voice Note: ' + transcript.slice(0,50),
+    content: transcript,
+    url: null,
+    addedAt: new Date().toISOString(),
+    analysis: null,
+    isDemo: false
+  };
+
+  state.inboxItems.unshift(item);
+  renderInbox();
+  saveState();
+  showStatus('inbox-add-status', 'info', 'Voice note added! Analyzing…', 0);
+
+  try {
+    const res = await apiCall('/api/analyze', { content: transcript, type: 'note' });
+    item.analysis = res.data;
+    renderInbox();
+    saveState();
+    updateOverviewStats();
+    showStatus('inbox-add-status', 'success', 'Voice note analyzed ✓', 3000);
+  } catch(e) {
+    item.analysis = { summary: transcript.slice(0,200), sentiment: 'neutral', relevance_score: 50, topics: [], key_points: [], category: 'note' };
+    renderInbox();
+    showStatus('inbox-add-status', 'warn', `Analysis unavailable: ${e.message}. Content saved.`, 5000);
+  }
+  eid('inbox-voice-transcript').value = '';
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function getSentimentBadge(sentiment) {
+  if (!sentiment) return '';
+  const map = { positive: 'badge-green', negative: 'badge-red', neutral: 'badge-gray' };
+  const emoji = { positive: '😊', negative: '😟', neutral: '😐' };
+  return `<span class="badge ${map[sentiment]||'badge-gray'}">${emoji[sentiment]||''}${sentiment}</span>`;
+}
+
+function getCategoryIcon(cat) {
+  const icons = { news:'📰', research:'🔬', social:'📱', comment:'💬', note:'📝', url:'🔗', image:'🖼', voice:'🎤', other:'📌' };
+  return icons[cat] || '📌';
+}
+
+function renderInbox() {
+  const search = eid('inbox-search')?.value?.toLowerCase() || '';
+  const filter = eid('inbox-filter')?.value || '';
+  let items = state.inboxItems;
+  if (filter) items = items.filter(i => i.category === filter || i.type === filter);
+  if (search) items = items.filter(i =>
+    (i.title||'').toLowerCase().includes(search) ||
+    (i.content||'').toLowerCase().includes(search) ||
+    (i.analysis?.summary||'').toLowerCase().includes(search)
+  );
+
+  const countTitle = eid('inbox-count-title');
+  if (countTitle) countTitle.textContent = `Content Cards (${state.inboxItems.length})`;
+
+  const list = eid('inbox-list');
+  const empty = eid('inbox-empty');
+  if (!list) return;
+
+  if (items.length === 0) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  list.innerHTML = items.map(item => {
+    const analysis = item.analysis;
+    const date = new Date(item.addedAt).toLocaleString();
+    const topics = analysis?.topics || [];
+    const demoTag = item.isDemo ? '<span class="demo-badge">DEMO</span>' : '';
+
+    return `<div class="inbox-item" id="item-${item.id}">
+      <div class="inbox-item-header">
+        <div class="inbox-item-title">${getCategoryIcon(item.category||item.type)} ${sanitize(item.title||'Untitled')} ${demoTag}</div>
+        <button class="btn-icon" onclick="deleteInboxItem('${item.id}')" aria-label="Delete item" title="Delete">🗑</button>
+      </div>
+      <div class="inbox-item-meta">
+        <span class="badge badge-blue">${getCategoryIcon(item.type)} ${item.type||'text'}</span>
+        ${getSentimentBadge(analysis?.sentiment)}
+        ${analysis?.relevance_score !== undefined ? `<span class="badge badge-purple">⭐ ${analysis.relevance_score}/100</span>` : ''}
+        <span style="color:var(--muted);font-size:11px">${date}</span>
+      </div>
+      <div class="inbox-item-text">${sanitize(analysis?.summary || item.content || '')}</div>
+      ${topics.length ? `<div style="margin-bottom:10px">${topics.map(t=>`<span class="tag tag-accent">${sanitize(t)}</span>`).join('')}</div>` : ''}
+      <div class="inbox-item-actions">
+        <button class="btn btn-sm btn-outline" onclick="analyzeItem('${item.id}')">🔍 Analyze</button>
+        <button class="btn btn-sm btn-purple" onclick="sendToTopicStudio('${item.id}')">💡 → Topic Studio</button>
+        <button class="btn btn-sm btn-outline" onclick="sendToRefinery('${item.id}')">🔬 Refine Idea</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function analyzeItem(id) {
+  const item = state.inboxItems.find(i => i.id === id);
+  if (!item) return;
+  const el = eid(`item-${id}`);
+  if (el) el.style.opacity = '0.6';
+  try {
+    const res = await apiCall('/api/analyze', { content: item.content, type: item.category, url: item.url });
+    item.analysis = res.data;
+    renderInbox();
+    saveState();
+    updateOverviewStats();
+  } catch(e) {
+    showStatus('inbox-add-status','error',`Analysis failed: ${e.message}`, 5000);
+    if (el) el.style.opacity = '1';
+  }
+}
+
+function deleteInboxItem(id) {
+  state.inboxItems = state.inboxItems.filter(i => i.id !== id);
+  renderInbox();
+  saveState();
+  updateOverviewStats();
+}
+
+function clearInbox() {
+  if (!confirm('Clear all content cards?')) return;
+  state.inboxItems = [];
+  renderInbox();
+  saveState();
+  updateOverviewStats();
+}
+
+function sendToTopicStudio(id) {
+  navigate('topics');
+}
+
+function sendToRefinery(id) {
+  const item = state.inboxItems.find(i => i.id === id);
+  if (!item) return;
+  navigate('refinery');
+  const el = eid('refinery-text');
+  if (el) el.value = item.content || '';
+}
+
+// ---- TOPIC STUDIO ----
+function updateTopicsSourceInfo() {
+  const el = eid('topics-sources-info');
+  if (el) el.textContent = `${state.inboxItems.length} source${state.inboxItems.length!==1?'s':''} in inbox`;
+}
+
+async function generateTopics() {
+  if (state.inboxItems.length === 0) {
+    showStatus('topics-sources-info','','',0);
+    const el = eid('topics-sources-info');
+    if (el) el.innerHTML = '<div class="alert alert-warn" style="margin:0">Add content to your inbox first.</div>';
+    return;
+  }
+
+  eid('topics-loading').style.display = 'flex';
+  eid('topics-empty').style.display = 'none';
+  eid('topics-list').innerHTML = '';
+  eid('topics-synthesis').style.display = 'none';
+  setLoading('generate-topics-btn', true, 'Analyzing…');
+
+  const sources = state.inboxItems.map(i => ({
+    category: i.category || i.type,
+    title: i.title,
+    summary: i.analysis?.summary || i.content?.slice(0,300),
+    content: i.content?.slice(0,300)
+  }));
+
+  try {
+    const res = await apiCall('/api/topics', { sources });
+    const data = res.data;
+    state.topics = data.topics || [];
+    saveState();
+    renderTopics(data);
+    updateOverviewStats();
+  } catch(e) {
+    eid('topics-empty').style.display = 'flex';
+    eid('topics-empty').innerHTML = `<div style="text-align:center;color:var(--danger);padding:20px">⚠️ ${sanitize(e.message)}</div>`;
+  } finally {
+    eid('topics-loading').style.display = 'none';
+    setLoading('generate-topics-btn', false);
+  }
+}
+
+function renderTopics(data) {
+  const topics = data.topics || [];
+  const synthesis = eid('topics-synthesis');
+  const synText = eid('topics-synthesis-text');
+  const themesRow = eid('topics-themes-row');
+  const contraEl = eid('topics-contradictions');
+  const contraText = eid('topics-contradictions-text');
+
+  if (data.summary && synthesis) {
+    synthesis.style.display = 'block';
+    if (synText) synText.textContent = data.summary;
+  }
+
+  if (data.themes && themesRow) {
+    themesRow.innerHTML = data.themes.map(t => `<span class="tag tag-accent">${sanitize(t)}</span>`).join('');
+  }
+
+  if (data.contradictions && contraEl && contraText) {
+    const contras = Array.isArray(data.contradictions) ? data.contradictions.join(', ') : data.contradictions;
+    if (contras) {
+      contraEl.style.display = 'block';
+      contraText.textContent = contras;
+    }
+  }
+
+  const list = eid('topics-list');
+  const empty = eid('topics-empty');
+
+  if (!topics.length) {
+    if (empty) { empty.style.display='flex'; empty.querySelector('div')?.textContent; }
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  list.innerHTML = topics.map((t, idx) => {
+    const hashtags = (t.hashtags||[]).slice(0,4).map(h => `<span class="tag">${sanitize(h)}</span>`).join('');
+    const momentum = t.momentum || 'stable';
+    return `<div class="topic-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">
+        <span class="badge badge-blue">#${idx+1}</span>
+        <span class="momentum-pill momentum-${momentum}">${momentum==='rising'?'↑':momentum==='declining'?'↓':'→'} ${momentum}</span>
+      </div>
+      <div class="topic-card-title">${sanitize(t.title)}</div>
+      <div class="topic-card-desc">${sanitize(t.description)}</div>
+      <div class="topic-scores">
+        <div class="score-item">
+          <div class="score-label">Relevance</div>
+          <div class="score-value" style="color:var(--accent2)">${t.relevance_score||0}</div>
+          <div class="score-bar"><div class="score-fill score-blue" style="width:${t.relevance_score||0}%"></div></div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Trend</div>
+          <div class="score-value" style="color:var(--accent3)">${t.trend_score||0}</div>
+          <div class="score-bar"><div class="score-fill score-purple" style="width:${t.trend_score||0}%"></div></div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">Engagement</div>
+          <div class="score-value" style="color:var(--success)">${t.engagement_score||0}</div>
+          <div class="score-bar"><div class="score-fill score-green" style="width:${t.engagement_score||0}%"></div></div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px">💡 ANGLE</div>
+        <div style="font-size:13px">${sanitize(t.suggested_angle||'')}</div>
+      </div>
+      ${hashtags ? `<div style="margin-bottom:12px">${hashtags}</div>` : ''}
+      <div class="btn-group">
+        <button class="btn btn-sm btn-success" onclick="useTopic(${idx})">✍️ Use Topic</button>
+        <button class="btn btn-sm btn-primary" onclick="buildBlueprint(${idx})">📋 Blueprint</button>
+        <button class="btn btn-sm btn-outline" onclick="refineTopicIdea(${idx})">🔬 Refine</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearTopics() {
+  state.topics = [];
+  saveState();
+  eid('topics-list').innerHTML = '';
+  eid('topics-synthesis').style.display = 'none';
+  eid('topics-empty').style.display = 'flex';
+  eid('topics-empty').innerHTML = `<div style="font-size:36px">💡</div><div style="font-weight:600">No topics yet</div><div style="color:var(--muted);text-align:center">Add content to your inbox first, then click <strong>Analyze &amp; Generate Topics</strong>.</div>`;
+  updateOverviewStats();
+}
+
+function useTopic(idx) {
+  const topic = state.topics[idx];
+  if (!topic) return;
+  eid('writer-topic').value = topic.title;
+  if (topic.recommended_tone) {
+    const toneSelect = eid('writer-tone');
+    if (toneSelect) toneSelect.value = topic.recommended_tone;
+  }
+  navigate('writer');
+  updateWriterContextLabel();
+  showWelcomeMessage(topic.title);
+}
+
+function buildBlueprint(idx) {
+  const topic = state.topics[idx];
+  if (!topic) return;
+  eid('bp-topic').value = topic.title;
+  if (topic.recommended_tone) {
+    const toneEl = eid('bp-tone');
+    if (toneEl) toneEl.value = topic.recommended_tone;
+  }
+  navigate('blueprint');
+}
+
+function refineTopicIdea(idx) {
+  const topic = state.topics[idx];
+  if (!topic) return;
+  eid('refinery-text').value = `${topic.title}: ${topic.description}`;
+  navigate('refinery');
+}
+
+// ---- IDEA REFINERY ----
+async function refineIdea() {
+  // Get active rtab
+  let idea = '';
+  let type = 'text';
+  const activeRtab = document.querySelector('.rtab-btn.active');
+  if (activeRtab) {
+    const tab = activeRtab.dataset.rtab;
+    if (tab === 'rtext') { idea = eid('refinery-text')?.value?.trim(); type = 'text'; }
+    else if (tab === 'rimage') {
+      idea = eid('refinery-img-desc')?.value?.trim();
+      const file = eid('refinery-image')?.files[0];
+      if (file) idea = (idea ? idea + '\n' : '') + `[Image: ${file.name}]`;
+      type = 'image';
+    }
+    else if (tab === 'rvoice') { idea = eid('refinery-voice')?.value?.trim(); type = 'voice'; }
+  } else {
+    idea = eid('refinery-text')?.value?.trim();
+  }
+
+  if (!idea) { showStatus('refinery-status','error','Please enter an idea to refine.'); return; }
+
+  setLoading('refine-btn', true, 'Refining…');
+  showStatus('refinery-status', 'info', 'AI is refining your idea…', 0);
+
+  try {
+    const res = await apiCall('/api/refine', { idea, type });
+    const d = res.data;
+    renderRefineryResults(d, idea);
+    showStatus('refinery-status', 'success', 'Idea refined! ✓', 3000);
+  } catch(e) {
+    showStatus('refinery-status', 'error', `Refinement failed: ${e.message}`, 6000);
+  } finally {
+    setLoading('refine-btn', false);
+  }
+}
+
+function renderRefineryResults(d, originalIdea) {
+  const el = eid('refinery-results');
+  if (!el) return;
+
+  const visuals = (d.suggested_visuals||[]).map(v => `<span class="tag tag-accent">${sanitize(v)}</span>`).join('');
+  const hooks = (d.hooks||[]).map((h,i) => `<div style="background:var(--bg3);border-left:3px solid var(--accent2);padding:10px 14px;border-radius:0 var(--radius-sm) var(--radius-sm) 0;margin-bottom:8px;font-size:13.5px"><strong>${i+1}.</strong> "${sanitize(h)}"</div>`).join('');
+  const questions = (d.key_questions||[]).map(q => `<li>${sanitize(q)}</li>`).join('');
+
+  el.innerHTML = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent3));display:flex;align-items:center;justify-content:center;font-size:18px">🔬</div>
+        <h3>Refined Idea</h3>
+      </div>
+
+      <div class="blueprint-section">
+        <h4>📝 Original Idea</h4>
+        <p>${sanitize(d.original_idea || originalIdea)}</p>
+      </div>
+
+      <div class="blueprint-section" style="border-color:var(--accent2)">
+        <h4>✨ Refined Concept</h4>
+        <p>${sanitize(d.refined_idea)}</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="blueprint-section">
+          <h4>🎯 Suggested Angle</h4>
+          <p>${sanitize(d.suggested_angle||'')}</p>
+        </div>
+        <div class="blueprint-section">
+          <h4>👥 Recommended Audience</h4>
+          <p>${sanitize(d.recommended_audience||'')}</p>
+        </div>
+        <div class="blueprint-section">
+          <h4>🎙 Recommended Tone</h4>
+          <p><strong>${sanitize(d.recommended_tone||'')}</strong> — ${sanitize(d.tone_explanation||'')}</p>
+        </div>
+        <div class="blueprint-section">
+          <h4>📏 Estimated Length</h4>
+          <p>${sanitize(d.estimated_length||'')}</p>
+        </div>
+      </div>
+
+      ${hooks ? `<div class="blueprint-section"><h4>🎣 Compelling Hooks</h4>${hooks}</div>` : ''}
+      ${questions ? `<div class="blueprint-section"><h4>❓ Key Questions to Answer</h4><ul>${questions}</ul></div>` : ''}
+      ${visuals ? `<div class="blueprint-section"><h4>🖼 Suggested Visuals</h4><div style="margin-top:6px">${visuals}</div></div>` : ''}
+
+      <div class="btn-group" style="margin-top:14px">
+        <button class="btn btn-primary" onclick="sendRefinedToBlueprint('${sanitize(d.refined_idea||'').replace(/'/g,'&apos;')}','${sanitize(d.recommended_tone||'').replace(/'/g,'&apos;')}')">📋 Build Blueprint</button>
+        <button class="btn btn-outline" onclick="sendRefinedToWriter('${sanitize(d.refined_idea||'').replace(/'/g,'&apos;')}')">✍️ Start Writing</button>
+      </div>
+    </div>`;
+}
+
+function sendRefinedToBlueprint(idea, tone) {
+  eid('bp-topic').value = idea;
+  if (tone) eid('bp-tone').value = tone;
+  navigate('blueprint');
+}
+
+function sendRefinedToWriter(idea) {
+  eid('writer-topic').value = idea;
+  navigate('writer');
+  updateWriterContextLabel();
+}
+
+// ---- BLOG BLUEPRINT ----
+async function generateBlueprint() {
+  const topic = eid('bp-topic')?.value?.trim();
+  if (!topic) { showStatus('blueprint-status','error','Please enter a topic.'); return; }
+
+  const tone = eid('bp-tone')?.value;
+  const audience = eid('bp-audience')?.value?.trim();
+  const useSources = eid('bp-use-sources')?.checked;
+
+  const sources = useSources ? state.inboxItems.map(i => ({
+    summary: i.analysis?.summary || i.content?.slice(0,200)
+  })) : [];
+
+  setLoading('blueprint-btn', true, 'Generating…');
+  showStatus('blueprint-status', 'info', 'Content Planner is building your blueprint…', 0);
+
+  try {
+    const res = await apiCall('/api/blueprint', { topic, tone, audience, sources });
+    const d = res.data;
+    state.savedBlueprint = { ...d, topic, tone, audience };
+    saveState();
+    renderBlueprint(d);
+    showStatus('blueprint-status', 'success', 'Blueprint generated ✓', 3000);
+  } catch(e) {
+    showStatus('blueprint-status', 'error', `Blueprint generation failed: ${e.message}`, 6000);
+  } finally {
+    setLoading('blueprint-btn', false);
+  }
+}
+
+function renderBlueprint(d) {
+  const el = eid('blueprint-results');
+  if (!el) return;
+
+  const sections = (d.sections||[]).map(s => `
+    <div class="blueprint-section">
+      <h4>📌 ${sanitize(s.heading)}</h4>
+      <p>${sanitize(s.summary)}</p>
+      ${s.key_arguments?.length ? `<ul>${s.key_arguments.map(k=>`<li>${sanitize(k)}</li>`).join('')}</ul>` : ''}
+      ${s.suggested_examples?.length ? `<div style="margin-top:8px;font-size:12px;color:var(--muted)">Examples: ${s.suggested_examples.map(e=>sanitize(e)).join(', ')}</div>` : ''}
+    </div>`).join('');
+
+  const headlineAlts = (d.headline_alternatives||[]).map(h => `<div class="tag tag-accent" style="display:block;padding:6px 10px;margin-bottom:4px">${sanitize(h)}</div>`).join('');
+  const seoKeywords = (d.seo_keywords||[]).map(k => `<span class="tag">${sanitize(k)}</span>`).join('');
+  const hashtags = (d.hashtags||[]).map(h => `<span class="tag tag-accent">${sanitize(h)}</span>`).join('');
+  const counterpoints = (d.counterpoints||[]).map(c => `<li>${sanitize(c)}</li>`).join('');
+
+  el.innerHTML = `
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <h2 style="font-size:18px">${sanitize(d.working_title||'Blog Blueprint')}</h2>
+        <div class="btn-group">
+          <button class="btn btn-success" onclick="openBlueprintInWriter()">✍️ Start Writing</button>
+          <button class="btn btn-outline btn-sm" onclick="generateBlueprint()">🔄 Regenerate</button>
+        </div>
+      </div>
+
+      ${headlineAlts ? `<div class="blueprint-section"><h4>📰 Headline Alternatives</h4>${headlineAlts}</div>` : ''}
+
+      <div class="blueprint-section" style="border-left-color:var(--accent2);border-left-width:3px;border-left-style:solid;background:rgba(88,166,255,.04)">
+        <h4>🎣 Hook</h4>
+        <p style="font-size:15px;font-style:italic">"${sanitize(d.hook)}"</p>
+      </div>
+
+      <div class="blueprint-section">
+        <h4>📖 Introduction</h4>
+        <p>${sanitize(d.introduction)}</p>
+      </div>
+
+      ${sections}
+
+      ${counterpoints ? `<div class="blueprint-section"><h4>⚔️ Counterpoints to Address</h4><ul>${counterpoints}</ul></div>` : ''}
+
+      <div class="blueprint-section">
+        <h4>🏁 Conclusion</h4>
+        <p>${sanitize(d.conclusion)}</p>
+      </div>
+
+      <div class="blueprint-section">
+        <h4>📣 Call to Action</h4>
+        <p>${sanitize(d.call_to_action)}</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="blueprint-section">
+          <h4>🔍 SEO Keywords</h4>
+          <div style="margin-top:6px">${seoKeywords}</div>
+        </div>
+        <div class="blueprint-section">
+          <h4>#️⃣ Hashtags</h4>
+          <div style="margin-top:6px">${hashtags}</div>
+        </div>
+        <div class="blueprint-section">
+          <h4>📏 Estimated Length</h4>
+          <p>${sanitize(d.estimated_length||'')}</p>
+        </div>
+        <div class="blueprint-section">
+          <h4>⏰ Publishing Time</h4>
+          <p><strong style="color:var(--success)">${sanitize(d.recommended_publishing_time?.time||'')} ${sanitize(d.recommended_publishing_time?.day||'')}</strong></p>
+          <p style="font-size:12px;color:var(--muted);margin-top:4px">${sanitize(d.recommended_publishing_time?.explanation||'')} <em>(AI estimate)</em></p>
+        </div>
+      </div>
+    </div>`;
+}
+
+function openBlueprintInWriter() {
+  const bp = state.savedBlueprint;
+  if (!bp) return;
+  if (bp.topic) eid('writer-topic').value = bp.topic;
+  if (bp.tone) eid('writer-tone').value = bp.tone;
+  if (bp.audience) eid('writer-audience').value = bp.audience;
+  navigate('writer');
+  updateWriterContextLabel();
+  showWelcomeMessage(bp.topic || 'your topic', bp);
+}
+
+// ---- WRITING PULSE ----
+async function generatePulse() {
+  const sources = state.inboxItems.map(i => ({
+    title: i.title,
+    summary: i.analysis?.summary || i.content?.slice(0,200)
+  }));
+
+  const topics = state.topics.map(t => ({ title: t.title }));
+
+  if (!sources.length && !topics.length) {
+    eid('pulse-btn').innerHTML = '⚠️ Add content first';
+    setTimeout(() => { eid('pulse-btn').innerHTML = '🔄 Refresh Analysis'; }, 3000);
+    return;
+  }
+
+  eid('pulse-loading').style.display = 'flex';
+  setLoading('pulse-btn', true, 'Analyzing…');
+
+  try {
+    const res = await apiCall('/api/pulse', { sources, topics });
+    state.pulseData = res.data;
+    renderPulse(res.data);
+    updateOverviewStats();
+  } catch(e) {
+    eid('pulse-loading').style.display = 'none';
+    eid('pulse-trending').innerHTML = `<div class="alert alert-error">${sanitize(e.message)}</div>`;
+  } finally {
+    eid('pulse-loading').style.display = 'none';
+    setLoading('pulse-btn', false);
+  }
+}
+
+function renderPulse(d) {
+  // Trending
+  const trendingEl = eid('pulse-trending');
+  if (trendingEl && d.trending_topics) {
+    trendingEl.innerHTML = d.trending_topics.map(t => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13.5px">${sanitize(t.topic)}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:80px">
+            <div class="score-bar"><div class="score-fill score-green" style="width:${t.score||0}%"></div></div>
+          </div>
+          <span class="momentum-pill momentum-${t.momentum||'stable'}">${t.momentum==='rising'?'↑':t.momentum==='declining'?'↓':'→'} ${t.momentum||'stable'}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  // Sentiment
+  const sent = d.sentiment_breakdown || {};
+  const posEl = eid('sent-pos'); const neuEl = eid('sent-neu'); const negEl = eid('sent-neg');
+  if (posEl) posEl.textContent = (sent.positive||0) + '%';
+  if (neuEl) neuEl.textContent = (sent.neutral||0) + '%';
+  if (negEl) negEl.textContent = (sent.negative||0) + '%';
+
+  const barEl = eid('sent-bar');
+  const barFill = eid('sent-bar-fill');
+  if (barEl && barFill) {
+    barEl.style.display = 'block';
+    const pos = sent.positive || 0;
+    const neg = sent.negative || 0;
+    barFill.style.width = `${pos}%`;
+    barFill.style.background = pos > 60 ? 'var(--success)' : neg > 60 ? 'var(--danger)' : 'var(--warn)';
+  }
+
+  // Engagement
+  const engEl = eid('pulse-engagement');
+  if (engEl && d.engagement_forecast) {
+    const levelColor = {'low':'var(--danger)','medium':'var(--warn)','high':'var(--success)'};
+    engEl.innerHTML = d.engagement_forecast.map(e => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;flex:1">${sanitize(e.topic)}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:20px;font-weight:700;color:${levelColor[e.level]||'var(--text)'}">${e.score||0}</span>
+          <span class="badge" style="background:${levelColor[e.level]||'var(--bg3)'}22;color:${levelColor[e.level]||'var(--muted)'}">${e.level||''}</span>
+        </div>
+      </div>`).join('');
+  }
+
+  // Publishing
+  const pubEl = eid('pulse-publishing');
+  const pub = d.recommended_publishing_time || {};
+  if (pubEl) {
+    pubEl.innerHTML = `
+      <div style="text-align:center;padding:10px 0">
+        <div style="font-size:28px;font-weight:700;color:var(--success)">${sanitize(pub.time||'N/A')}</div>
+        <div style="font-size:16px;color:var(--accent2);margin:4px 0">${sanitize(pub.day||'')}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px">${sanitize(pub.explanation||'')}</div>
+        <div class="alert alert-warn" style="margin-top:10px;font-size:11px"><span>⚠️</span><span>${sanitize(d.publishing_note||'AI estimate only — not based on your actual analytics.')}</span></div>
+      </div>`;
+  }
+
+  // Hashtags
+  const hashEl = eid('pulse-hashtags');
+  if (hashEl && d.top_hashtags) {
+    hashEl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:6px">${d.top_hashtags.map(h=>`<span class="tag tag-accent">${sanitize(h)}</span>`).join('')}</div>`;
+  }
+
+  // Angle
+  const angleEl = eid('pulse-angle');
+  if (angleEl) {
+    angleEl.innerHTML = `<div style="font-size:14px;line-height:1.6;color:var(--text)">${sanitize(d.recommended_angle||'')}</div>`;
+    if (d.content_gaps?.length) {
+      angleEl.innerHTML += `<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">Content Gaps</div>${d.content_gaps.map(g=>`<span class="tag">${sanitize(g)}</span>`).join('')}</div>`;
+    }
+  }
+}
+
+// ---- AI WRITER ----
+function updateWriterContextLabel() {
+  const topic = eid('writer-topic')?.value || '';
+  const tone = eid('writer-tone')?.value || '';
+  const lbl = eid('writer-context-label');
+  if (lbl) lbl.textContent = topic ? `${topic} · ${tone}` : 'No topic selected';
+}
+
+function showWelcomeMessage(topic, blueprint) {
+  const msgs = eid('chat-messages');
+  if (!msgs) return;
+  const context = blueprint ? `I have your blog blueprint ready:\n**"${blueprint.working_title || topic}"**\n\nYou can ask me to:\n- Write specific sections\n- Improve the hook\n- Develop arguments\n- Suggest transitions\n- Refine the tone\n\nWhat would you like to work on first?`
+    : `I'm ready to help you write about **"${topic}"**. What would you like to work on?`;
+
+  if (!state.chatMessages.length) {
+    const msg = { role: 'assistant', content: context };
+    state.chatMessages.push(msg);
+    appendChatMessage('ai', context);
+  }
+}
+
+function appendChatMessage(role, content) {
+  const msgs = eid('chat-messages');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  div.innerHTML = `
+    <div class="chat-avatar ${role}">${role==='ai'?'✍️':'👤'}</div>
+    <div class="chat-bubble ${role}"><p>${formatMarkdown(content)}</p></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function appendChatLoading() {
+  const msgs = eid('chat-messages');
+  if (!msgs) return;
+  const div = document.createElement('div');
+  div.className = 'chat-msg ai';
+  div.id = 'chat-loading-msg';
+  div.innerHTML = `<div class="chat-avatar ai">✍️</div><div class="chat-bubble ai"><span class="spinner" style="width:12px;height:12px;border-width:2px"></span></div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeChatLoading() {
+  eid('chat-loading-msg')?.remove();
+}
+
+async function sendChat() {
+  const input = eid('chat-input');
+  const msg = input?.value?.trim();
+  if (!msg) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+
+  const userMsg = { role: 'user', content: msg };
+  state.chatMessages.push(userMsg);
+  appendChatMessage('user', msg);
+  appendChatLoading();
+
+  const sendBtn = eid('send-btn');
+  if (sendBtn) sendBtn.disabled = true;
+
+  const context = {
+    topic: eid('writer-topic')?.value,
+    tone: eid('writer-tone')?.value,
+    audience: eid('writer-audience')?.value,
+    blueprint: state.savedBlueprint,
+    sources: state.inboxItems.slice(0,5).map(i => ({ summary: i.analysis?.summary || i.content?.slice(0,150), title: i.title }))
+  };
+
+  try {
+    const res = await apiCall('/api/chat', {
+      messages: state.chatMessages.filter(m => m.role !== 'system'),
+      context
+    });
+    const aiContent = res.content;
+    const aiMsg = { role: 'assistant', content: aiContent };
+    state.chatMessages.push(aiMsg);
+    removeChatLoading();
+    appendChatMessage('ai', aiContent);
+  } catch(e) {
+    removeChatLoading();
+    appendChatMessage('ai', `⚠️ Sorry, I couldn't process that: ${e.message}\n\nPlease try again or check your API configuration.`);
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    input?.focus();
+  }
+}
+
+function quickAction(text) {
+  const input = eid('chat-input');
+  if (input) { input.value = text; sendChat(); }
+}
+
+function clearChat() {
+  state.chatMessages = [];
+  const msgs = eid('chat-messages');
+  if (msgs) msgs.innerHTML = '';
+}
+
+// ---- DEMO MODE ----
+function loadDemoWorkspace() {
+  const demoBtn = eid('demo-btn');
+  if (demoBtn) demoBtn.innerHTML = '⏳ Loading…';
+
+  const demoItems = [
+    {
+      id: uuid(), type: 'text', category: 'news', isDemo: true,
+      title: 'AI Reshaping Creative Industries in 2025',
+      content: 'A new report from TechInsights reveals that over 60% of content creators now use AI tools daily. The study found that AI-assisted writers produce content 3x faster, though human editors remain essential for quality and authenticity. Major platforms are investing heavily in AI writing tools while simultaneously emphasizing the value of human creativity.',
+      addedAt: new Date().toISOString(),
+      analysis: { summary: 'AI tools are being adopted by 60%+ of content creators, accelerating production speed 3x while maintaining the need for human editorial oversight.', topics: ['AI in content creation', 'Writing tools', 'Digital publishing'], sentiment: 'positive', sentiment_score: 0.6, relevance_score: 88, key_points: ['60% creator adoption rate', '3x faster content production', 'Human editors still essential', 'Platform investment growing'], category: 'news' }
+    },
+    {
+      id: uuid(), type: 'text', category: 'research', isDemo: true,
+      title: 'Audience Attention Spans & Long-Form Content',
+      content: 'Research from the Content Marketing Institute shows that long-form blog posts (2,000+ words) receive 56% more social shares than shorter content. However, 73% of readers admit to skimming articles, making structure and subheadings critical. Interactive elements and embedded media increase time-on-page by 40%.',
+      addedAt: new Date().toISOString(),
+      analysis: { summary: 'Long-form content generates 56% more shares but 73% of readers skim, emphasizing the critical importance of structure, subheadings, and visual elements.', topics: ['Content strategy', 'Audience engagement', 'Blog optimization'], sentiment: 'neutral', sentiment_score: 0.1, relevance_score: 92, key_points: ['Long-form gets 56% more shares', '73% of readers skim', 'Structure is critical', 'Media increases dwell time 40%'], category: 'research' }
+    },
+    {
+      id: uuid(), type: 'text', category: 'social', isDemo: true,
+      title: 'Trending: "Quiet Quitting" Content Exhaustion',
+      content: 'Trending on social media: creators are talking about "content exhaustion" — the feeling of being overwhelmed by constant pressure to produce. The hashtag #ContentBurnout has 2.3M views on TikTok. Many bloggers are moving to quality-over-quantity publishing strategies, posting once a week instead of daily.',
+      addedAt: new Date().toISOString(),
+      analysis: { summary: '"Content burnout" is trending among creators with 2.3M views on TikTok, driving a shift toward quality-over-quantity publishing strategies.', topics: ['Creator economy', 'Content burnout', 'Publishing strategy'], sentiment: 'negative', sentiment_score: -0.4, relevance_score: 75, key_points: ['Content exhaustion trending', '2.3M TikTok views on #ContentBurnout', 'Quality over quantity shift', 'Weekly publishing gaining favor'], category: 'social' }
+    },
+    {
+      id: uuid(), type: 'text', category: 'comment', isDemo: true,
+      title: 'Reader Comment: What They Want',
+      content: 'Audience comment from survey: "I wish bloggers would stop just summarizing news and actually give me their unique perspective. I can read the news myself. What I want is analysis, personal experience, and actionable advice I can use today. Authenticity matters more than polish."',
+      addedAt: new Date().toISOString(),
+      analysis: { summary: 'Audience feedback strongly favors unique perspectives, personal experience, and actionable advice over news summaries, with authenticity prioritized over production value.', topics: ['Audience expectations', 'Content authenticity', 'Unique perspective'], sentiment: 'neutral', sentiment_score: 0.2, relevance_score: 95, key_points: ['Unique perspective demanded', 'Personal experience valued', 'Actionable advice preferred', 'Authenticity > polish'], category: 'comment' }
+    },
+    {
+      id: uuid(), type: 'text', category: 'note', isDemo: true,
+      title: 'My Blog Idea: AI & Human Creativity Collaboration',
+      content: 'Personal idea: Write about how AI should be a thinking partner, not a replacement. The best use of AI tools is as a creative collaborator — like having a research assistant, editor, and brainstorming partner in one. Share my own workflow using AI. Specific angle: the "1000 tools vs. 1 great collaborator" argument.',
+      addedAt: new Date().toISOString(),
+      analysis: { summary: 'A personal blog idea exploring AI as a creative collaborator rather than a replacement, using the writer\'s own workflow as a concrete example.', topics: ['AI collaboration', 'Writing workflow', 'Human creativity', 'Personal perspective'], sentiment: 'positive', sentiment_score: 0.7, relevance_score: 85, key_points: ['AI as thinking partner', 'Creative collaboration angle', 'Personal workflow story', '1000 tools vs 1 collaborator'], category: 'note' }
+    }
+  ];
+
+  const demoTopics = [
+    {
+      title: 'Why AI Won\'t Replace Bloggers — It\'ll Make the Best Ones Unstoppable',
+      description: 'Explore how top content creators are using AI as a creative force multiplier, not a replacement. Share data, personal experiences, and actionable workflows.',
+      why_it_matters: 'This topic addresses the #1 fear of content creators while providing actionable optimism backed by evidence.',
+      suggested_angle: 'Contrarian take: most "AI will replace writers" content is wrong about what writing actually is',
+      supporting_sources: [1, 2, 5],
+      relevance_score: 94, trend_score: 92, engagement_score: 88,
+      momentum: 'rising', hashtags: ['#AIWriting', '#ContentCreators', '#BloggingTips', '#WritingCommunity', '#AITools'],
+      recommended_tone: 'persuasive', isDemo: true
+    },
+    {
+      title: 'The Content Burnout Crisis: How to Publish Less and Matter More',
+      description: 'Address the growing creator burnout trend with a quality-over-quantity framework backed by research on audience engagement patterns.',
+      why_it_matters: 'Millions of creators are burning out. This gives them permission and a strategy to slow down without losing audience.',
+      suggested_angle: 'Counter-intuitive: posting less can grow your audience faster',
+      supporting_sources: [2, 3, 4],
+      relevance_score: 87, trend_score: 89, engagement_score: 82,
+      momentum: 'rising', hashtags: ['#ContentBurnout', '#SlowContent', '#QualityOverQuantity', '#CreatorEconomy'],
+      recommended_tone: 'conversational', isDemo: true
+    },
+    {
+      title: 'What 2,000 Blog Readers Actually Want (The Data Will Surprise You)',
+      description: 'Synthesize research and audience data to reveal the surprising gap between what bloggers think readers want and what they actually engage with.',
+      why_it_matters: 'Data-driven content always performs. This delivers clear, actionable insights for any blogger.',
+      suggested_angle: 'The authenticity gap: polished content loses to genuine perspective every time',
+      supporting_sources: [2, 4],
+      relevance_score: 82, trend_score: 78, engagement_score: 85,
+      momentum: 'stable', hashtags: ['#ContentStrategy', '#AudienceResearch', '#Blogging', '#ContentMarketing'],
+      recommended_tone: 'analytical', isDemo: true
+    }
+  ];
+
+  // Clear and load demo content
+  state.inboxItems = demoItems;
+  state.topics = demoTopics;
+  state.isDemoMode = true;
+  saveState();
+  renderInbox();
+  renderTopics({ topics: demoTopics, summary: 'The collected sources reveal a fascinating tension in the content creation landscape: AI is accelerating production while creators simultaneously experience burnout. Audiences are demanding more authenticity and unique perspective, creating a clear opportunity for bloggers who can combine AI efficiency with genuine human insight.', themes: ['AI in creativity', 'Content burnout', 'Audience authenticity', 'Quality vs quantity', 'Creator tools'] });
+  updateOverviewStats();
+
+  if (demoBtn) demoBtn.innerHTML = '✓ Demo Loaded';
+  setTimeout(() => { if(eid('demo-btn')) eid('demo-btn').innerHTML = '🎯 Load Demo Workspace'; }, 3000);
+
+  navigate('overview');
+  alert('✅ Demo workspace loaded! Navigate through the sections to explore WritePulse AI. All content is labeled as DEMO.');
+}
+
+// ---- KEYBOARD EVENTS ----
+document.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  checkApiHealth();
+  initTabs();
+  renderInbox();
+  if (state.topics.length) {
+    renderTopics({ topics: state.topics });
+  }
+  if (state.savedBlueprint) {
+    renderBlueprint(state.savedBlueprint);
+  }
+  updateOverviewStats();
+
+  // Sidebar navigation
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => navigate(item.dataset.section));
+    item.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') navigate(item.dataset.section); });
+  });
+
+  // Mobile menu
+  eid('menu-btn').addEventListener('click', () => {
+    eid('sidebar').classList.toggle('open');
+    eid('sidebar-overlay').classList.toggle('open');
+  });
+  eid('sidebar-overlay').addEventListener('click', () => {
+    eid('sidebar').classList.remove('open');
+    eid('sidebar-overlay').classList.remove('open');
+  });
+
+  // Chat enter key
+  eid('chat-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+
+  // Auto-resize chat input
+  eid('chat-input')?.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+  });
+
+  // Writer topic/tone updates
+  eid('writer-topic')?.addEventListener('input', updateWriterContextLabel);
+  eid('writer-tone')?.addEventListener('change', updateWriterContextLabel);
+
+  // Responsive layout adjustments
+  const mq = window.matchMedia('(max-width: 768px)');
+  function handleMQ(e) {
+    document.querySelectorAll('.inbox-layout,.refinery-layout,.blueprint-layout,.writer-layout').forEach(el => {
+      if (e.matches) el.style.gridTemplateColumns = '1fr';
+      else el.style.gridTemplateColumns = '';
+    });
+  }
+  mq.addEventListener('change', handleMQ);
+  handleMQ(mq);
+});
+</script>
+</body>
+</html>
